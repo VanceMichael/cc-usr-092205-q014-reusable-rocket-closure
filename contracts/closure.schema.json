@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "可回收火箭归零闭环记录",
+  "type": "object",
+  "required": [
+    "domain",
+    "version",
+    "sample_id",
+    "investigation",
+    "telemetry",
+    "configurations",
+    "software",
+    "environments",
+    "fault_tree",
+    "experiments",
+    "measures",
+    "assessments",
+    "follow_ups",
+    "reviews",
+    "releases"
+  ],
+  "properties": {
+    "domain": {
+      "const": "reusable-rocket-closure"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "sample_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "investigation": {
+      "type": "object",
+      "required": [
+        "id",
+        "mission",
+        "anomaly_phase",
+        "primary_objective_met",
+        "summary"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "mission": { "type": "string", "minLength": 1 },
+        "anomaly_phase": { "type": "string", "minLength": 1 },
+        "primary_objective_met": { "type": "boolean" },
+        "summary": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "telemetry": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [ "id", "window", "source", "decoding_version", "status" ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "window": { "type": "string", "minLength": 1 },
+          "source": { "type": "string", "minLength": 1 },
+          "decoding_version": { "type": "integer", "minimum": 1 },
+          "status": { "type": "string", "minLength": 1 },
+          "notes": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "configurations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [ "id", "description" ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "grid_fin": { "type": "string" },
+          "engine": { "type": "string" },
+          "software": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "software": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [ "id", "component", "change" ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "component": { "type": "string", "minLength": 1 },
+          "change": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "environments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [ "id", "factor", "value", "source" ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "factor": { "type": "string", "minLength": 1 },
+          "value": { "type": "string", "minLength": 1 },
+          "source": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "fault_tree": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "discipline",
+          "owner",
+          "risk",
+          "status",
+          "configurations",
+          "evidence"
+        ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "discipline": { "type": "string", "minLength": 1 },
+          "owner": { "type": "string", "minLength": 1 },
+          "risk": { "enum": [ "高", "中", "低" ] },
+          "status": { "enum": [ "待排查", "调查中", "已排除", "已关闭" ] },
+          "configurations": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [ "kind", "source", "note" ],
+              "properties": {
+                "kind": { "enum": [ "支持", "排除" ] },
+                "source": { "type": "string", "minLength": 1 },
+                "note": { "type": "string", "minLength": 1 }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "experiments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [ "id", "targets", "method", "result" ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "targets": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "method": { "type": "string", "minLength": 1 },
+          "result": { "enum": [ "通过", "失败", "复现" ] },
+          "note": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "measures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "owner",
+          "addresses",
+          "requires_flight",
+          "verifications"
+        ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "owner": { "type": "string", "minLength": 1 },
+          "addresses": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "requires_flight": { "type": "boolean" },
+          "split_from": { "type": "string", "minLength": 1 },
+          "split_into": {
+            "type": "array",
+            "minItems": 2,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "verifications": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [ "scope", "method", "result" ],
+              "properties": {
+                "scope": { "enum": [ "地面", "飞行" ] },
+                "method": { "type": "string", "minLength": 1 },
+                "result": { "enum": [ "通过", "失败" ] }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "assessments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [ "id", "disciplines", "conclusion", "status" ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "disciplines": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "conclusion": { "type": "string", "minLength": 1 },
+          "status": { "enum": [ "未确认", "已确认" ] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "follow_ups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [ "id", "kind", "ref", "note", "recorded_by" ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "kind": {
+            "enum": [ "数据重解码", "试验失败", "措施拆分", "供应商反馈", "飞行结果" ]
+          },
+          "ref": { "type": "string", "minLength": 1 },
+          "note": { "type": "string", "minLength": 1 },
+          "recorded_by": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "reviews": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [ "id", "measure", "reviewer", "result" ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "measure": { "type": "string", "minLength": 1 },
+          "reviewer": { "type": "string", "minLength": 1 },
+          "result": { "enum": [ "通过", "不通过" ] }
+        },
+        "additionalProperties": false
+      }
+    },
+    "releases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [ "configuration", "decision", "reason" ],
+        "properties": {
+          "configuration": { "type": "string", "minLength": 1 },
+          "decision": { "enum": [ "放行", "阻止" ] },
+          "reason": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

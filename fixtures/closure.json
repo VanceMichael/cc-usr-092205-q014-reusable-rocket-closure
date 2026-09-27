@@ -1,0 +1,357 @@
+{
+  "domain": "reusable-rocket-closure",
+  "version": 2,
+  "sample_id": "closure-y1",
+  "investigation": {
+    "id": "INV-Y1-RECOVERY",
+    "mission": "朱雀三号 Y1",
+    "anomaly_phase": "着陆点火段",
+    "primary_objective_met": true,
+    "summary": "Y1 入轨目标完成，一子级回收在着陆点火后姿态发散坠地，残骸中栅格舵扭曲变形，陈列于型号办公室警示：未完成归零，不能把下一发成功当作答案。"
+  },
+  "telemetry": [
+    {
+      "id": "TEL-001",
+      "window": "T+418s~T+452s",
+      "source": "箭载姿控遥测",
+      "decoding_version": 2,
+      "status": "已解码",
+      "notes": "重新解码后发现增益切换时刻姿态角速度突增"
+    },
+    {
+      "id": "TEL-002",
+      "window": "T+418s~T+452s",
+      "source": "发动机室压遥测",
+      "decoding_version": 1,
+      "status": "已解码",
+      "notes": "着陆发动机室压曲线平稳，在包线内"
+    },
+    {
+      "id": "TEL-003",
+      "window": "T+430s~T+452s",
+      "source": "舵面应变遥测",
+      "decoding_version": 1,
+      "status": "部分丢失",
+      "notes": "触地前 3s 信号中断"
+    }
+  ],
+  "configurations": [
+    {
+      "id": "CFG-B1",
+      "description": "Y1 飞行构型",
+      "grid_fin": "栅格舵批次03",
+      "engine": "TQ-12B",
+      "software": "SW-GNC-3.2.1"
+    },
+    {
+      "id": "CFG-B2",
+      "description": "下一发构型（含改进措施）",
+      "grid_fin": "加强型栅格舵（措施 M-001）",
+      "engine": "TQ-12B",
+      "software": "SW-GNC-3.2.2"
+    }
+  ],
+  "software": [
+    {
+      "id": "SW-GNC-3.2.1",
+      "component": "制导导航与控制",
+      "change": "Y1 使用版本，着陆段增益调度表 V5"
+    },
+    {
+      "id": "SW-GNC-3.2.2",
+      "component": "制导导航与控制",
+      "change": "着陆段增益调度表 V6，增加切换速率限制（措施 M-002）"
+    }
+  ],
+  "environments": [
+    {
+      "id": "ENV-001",
+      "factor": "高空风切变",
+      "value": "12 m/s @ 8km（设计包线 15 m/s）",
+      "source": "发射日探空气球"
+    },
+    {
+      "id": "ENV-002",
+      "factor": "着陆场地面风",
+      "value": "6 m/s 东南风",
+      "source": "着陆场气象站"
+    }
+  ],
+  "fault_tree": [
+    {
+      "id": "FT-01",
+      "title": "栅格舵前缘在着陆点火热-力耦合下局部失稳",
+      "discipline": "结构",
+      "owner": "结构专业-陈工",
+      "risk": "高",
+      "status": "已关闭",
+      "configurations": [ "CFG-B1", "CFG-B2" ],
+      "evidence": [
+        {
+          "kind": "支持",
+          "source": "残骸检查",
+          "note": "回收残骸栅格舵前缘扭曲变形，变形模式与局部失稳一致"
+        },
+        {
+          "kind": "支持",
+          "source": "TEL-001",
+          "note": "着陆点火后 0.8s 舵面指令与姿态响应持续背离"
+        },
+        {
+          "kind": "支持",
+          "source": "EXP-003",
+          "note": "加强前构型在热-力联合试验中复现失稳"
+        }
+      ]
+    },
+    {
+      "id": "FT-02",
+      "title": "着陆发动机点火压力脉动引发姿态扰动",
+      "discipline": "动力",
+      "owner": "动力专业-周工",
+      "risk": "高",
+      "status": "已排除",
+      "configurations": [ "CFG-B1", "CFG-B2" ],
+      "evidence": [
+        {
+          "kind": "排除",
+          "source": "TEL-002",
+          "note": "室压曲线平稳，脉动幅值在包线内"
+        },
+        {
+          "kind": "排除",
+          "source": "EXP-002",
+          "note": "地面热试车复现着陆工况未现异常"
+        }
+      ]
+    },
+    {
+      "id": "FT-03",
+      "title": "GNC 着陆段增益调度表切换引起姿态发散",
+      "discipline": "控制",
+      "owner": "控制专业-林工",
+      "risk": "中",
+      "status": "已关闭",
+      "configurations": [ "CFG-B1", "CFG-B2" ],
+      "evidence": [
+        {
+          "kind": "支持",
+          "source": "TEL-001",
+          "note": "重新解码数据显示增益切换时刻角速度突增"
+        },
+        {
+          "kind": "支持",
+          "source": "EXP-004",
+          "note": "半实物仿真复现切换瞬态发散"
+        }
+      ]
+    },
+    {
+      "id": "FT-04",
+      "title": "高空风切变超出设计包线",
+      "discipline": "环境",
+      "owner": "总体专业-吴工",
+      "risk": "中",
+      "status": "已排除",
+      "configurations": [ "CFG-B1" ],
+      "evidence": [
+        {
+          "kind": "排除",
+          "source": "ENV-001",
+          "note": "发射日探空风切变 12 m/s，未超 15 m/s 设计包线"
+        }
+      ]
+    },
+    {
+      "id": "FT-05",
+      "title": "栅格舵作动器批次03装配间隙超差导致卡滞",
+      "discipline": "机电",
+      "owner": "机电专业-赵工",
+      "risk": "高",
+      "status": "调查中",
+      "configurations": [ "CFG-B1", "CFG-B2" ],
+      "evidence": [
+        {
+          "kind": "支持",
+          "source": "FU-004",
+          "note": "供应商确认批次03存在装配间隙超差"
+        },
+        {
+          "kind": "排除",
+          "source": "TEL-003",
+          "note": "信号中断前舵面应变记录无卡滞特征，尚不能定论"
+        }
+      ]
+    }
+  ],
+  "experiments": [
+    {
+      "id": "EXP-001",
+      "targets": [ "FT-01" ],
+      "method": "栅格舵静力试验（初始载荷谱）",
+      "result": "失败",
+      "note": "未复现变形，载荷谱需修正"
+    },
+    {
+      "id": "EXP-002",
+      "targets": [ "FT-02" ],
+      "method": "着陆工况发动机地面热试车",
+      "result": "通过",
+      "note": "未复现压力脉动异常"
+    },
+    {
+      "id": "EXP-003",
+      "targets": [ "FT-01" ],
+      "method": "栅格舵热-力联合试验（修正载荷谱）",
+      "result": "复现",
+      "note": "复现前缘局部失稳；加强构型同工况通过"
+    },
+    {
+      "id": "EXP-004",
+      "targets": [ "FT-03" ],
+      "method": "GNC 半实物仿真",
+      "result": "复现",
+      "note": "复现增益切换瞬态发散；V6 调度表验证通过"
+    }
+  ],
+  "measures": [
+    {
+      "id": "M-001",
+      "title": "栅格舵前缘防热涂层与加强筋改进",
+      "owner": "结构专业-陈工",
+      "addresses": [ "FT-01" ],
+      "requires_flight": true,
+      "verifications": [
+        {
+          "scope": "地面",
+          "method": "EXP-003 加强构型热-力联合试验",
+          "result": "通过"
+        }
+      ]
+    },
+    {
+      "id": "M-002",
+      "title": "GNC 着陆段增益调度表修订（SW-GNC-3.2.2）",
+      "owner": "控制专业-林工",
+      "addresses": [ "FT-03" ],
+      "requires_flight": true,
+      "verifications": [
+        {
+          "scope": "地面",
+          "method": "EXP-004 半实物仿真",
+          "result": "通过"
+        }
+      ]
+    },
+    {
+      "id": "M-003",
+      "title": "作动器批次问题纠正（原始措施，已拆分）",
+      "owner": "机电专业-赵工",
+      "addresses": [ "FT-05" ],
+      "requires_flight": false,
+      "split_into": [ "M-004", "M-005" ],
+      "verifications": []
+    },
+    {
+      "id": "M-004",
+      "title": "作动器批次03全部更换为整改后批次05",
+      "owner": "机电专业-赵工",
+      "addresses": [ "FT-05" ],
+      "requires_flight": true,
+      "split_from": "M-003",
+      "verifications": []
+    },
+    {
+      "id": "M-005",
+      "title": "作动器来料检验加严（间隙复测纳入必检项）",
+      "owner": "机电专业-赵工",
+      "addresses": [ "FT-05" ],
+      "requires_flight": false,
+      "split_from": "M-003",
+      "verifications": [
+        {
+          "scope": "地面",
+          "method": "检验规程升级与复测演练",
+          "result": "通过"
+        }
+      ]
+    }
+  ],
+  "assessments": [
+    {
+      "id": "AS-01",
+      "disciplines": [ "结构" ],
+      "conclusion": "栅格舵局部失稳是唯一主导因素",
+      "status": "未确认"
+    },
+    {
+      "id": "AS-02",
+      "disciplines": [ "控制" ],
+      "conclusion": "增益调度不当可单独导致发散",
+      "status": "未确认"
+    },
+    {
+      "id": "AS-03",
+      "disciplines": [ "结构", "控制", "动力" ],
+      "conclusion": "直接原因为栅格舵在着陆点火热-力耦合下局部失稳，增益切换瞬态为耦合放大因素",
+      "status": "已确认"
+    }
+  ],
+  "follow_ups": [
+    {
+      "id": "FU-001",
+      "kind": "试验失败",
+      "ref": "EXP-001",
+      "note": "初始载荷谱未复现变形，修正后纳入 EXP-003",
+      "recorded_by": "结构专业-陈工"
+    },
+    {
+      "id": "FU-002",
+      "kind": "数据重解码",
+      "ref": "TEL-001",
+      "note": "采用修订码本重新解码，发现增益切换时刻角速度突增",
+      "recorded_by": "总体专业-吴工"
+    },
+    {
+      "id": "FU-003",
+      "kind": "措施拆分",
+      "ref": "M-003",
+      "note": "拆分为 M-004（批次更换）与 M-005（检验加严）",
+      "recorded_by": "机电专业-赵工"
+    },
+    {
+      "id": "FU-004",
+      "kind": "供应商反馈",
+      "ref": "M-004",
+      "note": "供应商确认批次03装配间隙超差，批次05已完成整改并随附合格证",
+      "recorded_by": "供应链-钱工"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "RV-001",
+      "measure": "M-001",
+      "reviewer": "独立审查-王工",
+      "result": "通过"
+    },
+    {
+      "id": "RV-002",
+      "measure": "M-002",
+      "reviewer": "独立审查-李工",
+      "result": "通过"
+    },
+    {
+      "id": "RV-003",
+      "measure": "M-005",
+      "reviewer": "独立审查-王工",
+      "result": "通过"
+    }
+  ],
+  "releases": [
+    {
+      "configuration": "CFG-B2",
+      "decision": "阻止",
+      "reason": "FT-05 高风险嫌疑项未关闭：作动器更换件（M-004）尚未完成地面验证"
+    }
+  ]
+}
