@@ -8,8 +8,19 @@
     "sample_id",
     "actors",
     "facts",
-    "constraints"
+    "constraints",
+    "configurations",
+    "telemetry_segments",
+    "environment",
+    "fault_tree",
+    "experiments",
+    "measures",
+    "follow_ups",
+    "release_gates",
+    "readiness_board",
+    "flight_reviews"
   ],
+  "additionalProperties": false,
   "properties": {
     "domain": {
       "type": "string",
@@ -17,7 +28,7 @@
     },
     "version": {
       "type": "integer",
-      "minimum": 1
+      "minimum": 2
     },
     "sample_id": {
       "type": "string",
@@ -27,23 +38,595 @@
       "type": "array",
       "minItems": 2,
       "items": {
-        "type": "string"
+        "$ref": "#/$defs/actor"
       }
     },
     "facts": {
       "type": "array",
       "minItems": 2,
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 1
       }
     },
     "constraints": {
       "type": "array",
       "minItems": 2,
       "items": {
-        "type": "string"
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "configurations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/configuration"
+      }
+    },
+    "telemetry_segments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/telemetrySegment"
+      }
+    },
+    "environment": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/environmentFactor"
+      }
+    },
+    "fault_tree": {
+      "$ref": "#/$defs/faultTree"
+    },
+    "experiments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/experiment"
+      }
+    },
+    "measures": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/measure"
+      }
+    },
+    "follow_ups": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/followUp"
+      }
+    },
+    "release_gates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/releaseGate"
+      }
+    },
+    "readiness_board": {
+      "$ref": "#/$defs/readinessBoard"
+    },
+    "flight_reviews": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/flightReview"
       }
     }
   },
-  "additionalProperties": false
+  "$defs": {
+    "actor": {
+      "type": "object",
+      "required": ["id", "title", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "program_lead",
+            "investigator",
+            "measure_owner",
+            "independent_reviewer",
+            "supplier"
+          ]
+        },
+        "discipline": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "investigator"
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "required": ["discipline"]
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "required": ["id", "label", "software", "hardware"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "software": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["component", "version"],
+            "additionalProperties": false,
+            "properties": {
+              "component": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "hardware": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["component", "part", "serial"],
+            "additionalProperties": false,
+            "properties": {
+              "component": {
+                "type": "string",
+                "minLength": 1
+              },
+              "part": {
+                "type": "string",
+                "minLength": 1
+              },
+              "serial": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "telemetrySegment": {
+      "type": "object",
+      "required": ["id", "phase", "window", "channels", "decode_status", "finding"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "phase": {
+          "type": "string",
+          "minLength": 1
+        },
+        "window": {
+          "type": "string",
+          "minLength": 1
+        },
+        "channels": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "decode_status": {
+          "enum": ["decoded", "redecoded", "partial"]
+        },
+        "finding": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "environmentFactor": {
+      "type": "object",
+      "required": ["id", "factor", "condition", "source"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "factor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "condition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "faultTree": {
+      "type": "object",
+      "required": ["top_event", "nodes"],
+      "additionalProperties": false,
+      "properties": {
+        "top_event": {
+          "type": "string",
+          "minLength": 1
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/faultNode"
+          }
+        }
+      }
+    },
+    "faultNode": {
+      "type": "object",
+      "required": [
+        "id",
+        "hypothesis",
+        "discipline",
+        "risk",
+        "status",
+        "configurations",
+        "evidence",
+        "positions",
+        "conclusion"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hypothesis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "discipline": {
+          "type": "string",
+          "minLength": 1
+        },
+        "risk": {
+          "enum": ["high", "medium", "low"]
+        },
+        "status": {
+          "enum": ["open", "excluded", "confirmed", "closed"]
+        },
+        "configurations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "positions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["discipline", "view"],
+            "additionalProperties": false,
+            "properties": {
+              "discipline": {
+                "type": "string",
+                "minLength": 1
+              },
+              "view": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "conclusion": {
+          "type": "object",
+          "required": ["status"],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "enum": ["unconfirmed", "confirmed"]
+            },
+            "by": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["id", "kind", "source", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": ["supports", "excludes"]
+        },
+        "source": {
+          "type": "string",
+          "pattern": "^(TLM|EXP|ENV|FU|DOC)-"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "experiment": {
+      "type": "object",
+      "required": ["id", "target_node", "method", "site", "result", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_node": {
+          "type": "string",
+          "minLength": 1
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "site": {
+          "type": "string",
+          "minLength": 1
+        },
+        "result": {
+          "enum": ["planned", "reproduced", "not_reproduced", "invalid"]
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "measure": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "owner",
+        "reviewer",
+        "addresses",
+        "verification",
+        "status",
+        "parent"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reviewer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "addresses": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "verification": {
+          "enum": ["unverified", "ground_verified", "needs_flight", "flight_verified"]
+        },
+        "status": {
+          "enum": ["open", "in_progress", "closed"]
+        },
+        "parent": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "followUp": {
+      "type": "object",
+      "required": ["id", "kind", "ref", "by", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": ["redecode", "test_failure", "measure_split", "supplier_feedback"]
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "produces": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "measure_split"
+          }
+        },
+        "required": ["kind"]
+      },
+      "then": {
+        "required": ["produces"]
+      }
+    },
+    "releaseGate": {
+      "type": "object",
+      "required": ["configuration", "status", "blocked_by"],
+      "additionalProperties": false,
+      "properties": {
+        "configuration": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": ["blocked", "released"]
+        },
+        "blocked_by": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "readinessBoard": {
+      "type": "object",
+      "required": [
+        "meeting",
+        "unverified_hypotheses",
+        "ground_verified_measures",
+        "needs_flight_verification"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "meeting": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unverified_hypotheses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/boardEntry"
+          }
+        },
+        "ground_verified_measures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/boardEntry"
+          }
+        },
+        "needs_flight_verification": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/boardEntry"
+          }
+        }
+      }
+    },
+    "boardEntry": {
+      "type": "object",
+      "required": ["ref", "owner"],
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "flightReview": {
+      "type": "object",
+      "required": ["flight", "outcome", "updates"],
+      "additionalProperties": false,
+      "properties": {
+        "flight": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outcome": {
+          "type": "string",
+          "minLength": 1
+        },
+        "updates": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["ref", "from", "to"],
+            "additionalProperties": false,
+            "properties": {
+              "ref": {
+                "type": "string",
+                "minLength": 1
+              },
+              "from": {
+                "type": "string",
+                "minLength": 1
+              },
+              "to": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }

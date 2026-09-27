@@ -1,21 +1,329 @@
 {
   "domain": "reusable-rocket-closure",
-  "version": 1,
+  "version": 2,
   "sample_id": "record-014",
   "actors": [
-    "业务负责人",
-    "一线执行人员",
-    "审查人员"
+    {"id": "ACT-PROG", "title": "型号负责人", "kind": "program_lead"},
+    {"id": "ACT-INV-STR", "title": "结构调查组长", "kind": "investigator", "discipline": "结构"},
+    {"id": "ACT-INV-PRO", "title": "动力调查组长", "kind": "investigator", "discipline": "动力"},
+    {"id": "ACT-INV-GNC", "title": "控制调查组长", "kind": "investigator", "discipline": "控制"},
+    {"id": "ACT-INV-ENV", "title": "环境分析组长", "kind": "investigator", "discipline": "环境"},
+    {"id": "ACT-INV-SW", "title": "软件调查组长", "kind": "investigator", "discipline": "软件"},
+    {"id": "ACT-INV-TLM", "title": "遥测分析组长", "kind": "investigator", "discipline": "遥测"},
+    {"id": "ACT-OWN-01", "title": "栅格舵措施负责人", "kind": "measure_owner"},
+    {"id": "ACT-OWN-02", "title": "动力措施负责人", "kind": "measure_owner"},
+    {"id": "ACT-OWN-03", "title": "供应商接口措施负责人", "kind": "measure_owner"},
+    {"id": "ACT-OWN-04", "title": "测控措施负责人", "kind": "measure_owner"},
+    {"id": "ACT-REV-01", "title": "独立审查人一", "kind": "independent_reviewer"},
+    {"id": "ACT-REV-02", "title": "独立审查人二", "kind": "independent_reviewer"},
+    {"id": "ACT-SUP-01", "title": "供应商联络人", "kind": "supplier"}
   ],
   "facts": [
     "航天归零包括收集数据、故障树排查、复现、机理分析和措施验证",
     "朱雀三号首次回收尝试在着陆点火后异常坠落",
-    "后续任务实现我国首次火箭陆地回收"
+    "后续任务实现我国首次火箭陆地回收",
+    "技术归零要求定位准确、机理清楚、问题复现、措施有效、举一反三",
+    "入轨目标完成不等于回收闭环完成，未归零前不得把下一发成功当作答案"
   ],
   "constraints": [
-    "故障树管理",
-    "证据与复现",
-    "措施验证",
-    "构型放行"
+    "每个嫌疑项必须写明支持或排除证据",
+    "并行调查允许观点冲突，但未确认的结论不得跨专业共享",
+    "独立审查人与措施负责人分权，不得由同一人兼任",
+    "未关闭的高风险项阻止相关构型放行",
+    "数据重新解码、试验失败、措施拆分和供应商反馈只追加后续记录，不改写原始记录",
+    "飞行结果回来后必须更新假设与措施状态"
+  ],
+  "configurations": [
+    {
+      "id": "CFG-Y1",
+      "label": "遥一飞行构型（回收异常当次）",
+      "software": [
+        {"component": "飞控软件", "version": "FCW-3.2.1"},
+        {"component": "发动机控制软件", "version": "ECU-2.8.0"}
+      ],
+      "hardware": [
+        {"component": "栅格舵", "part": "GF-MarkII", "serial": "GF-009"},
+        {"component": "主发动机", "part": "TQ-12B", "serial": "EN-103"}
+      ]
+    },
+    {
+      "id": "CFG-Y2",
+      "label": "遥二飞行构型（下一发）",
+      "software": [
+        {"component": "飞控软件", "version": "FCW-3.3.0"},
+        {"component": "发动机控制软件", "version": "ECU-2.9.1"}
+      ],
+      "hardware": [
+        {"component": "栅格舵", "part": "GF-MarkII-R", "serial": "GF-011"},
+        {"component": "主发动机", "part": "TQ-12B", "serial": "EN-107"}
+      ]
+    }
+  ],
+  "telemetry_segments": [
+    {
+      "id": "TLM-01",
+      "phase": "再入减速段",
+      "window": "T+360s~T+420s",
+      "channels": ["栅格舵偏转角", "姿态角", "动压"],
+      "decode_status": "decoded",
+      "finding": "栅格舵跟踪指令正常，姿态在包络内"
+    },
+    {
+      "id": "TLM-02",
+      "phase": "着陆点火段",
+      "window": "T+420s~T+455s",
+      "channels": ["发动机室压", "推力阀开度", "姿态角速率"],
+      "decode_status": "decoded",
+      "finding": "点火后2.1s姿态角速率超包络，主发动机室压上升较地面验收曲线慢0.4s"
+    },
+    {
+      "id": "TLM-03",
+      "phase": "异常末段",
+      "window": "T+455s~T+462s",
+      "channels": ["栅格舵偏转角", "舵面位置反馈", "姿态角速率"],
+      "decode_status": "redecoded",
+      "finding": "重新解码恢复信号中断前0.8s数据，栅格舵偏转角持续饱和且与舵面位置反馈不一致"
+    }
+  ],
+  "environment": [
+    {
+      "id": "ENV-01",
+      "factor": "着陆场高空风",
+      "condition": "再分析风切变处于设计包络内",
+      "source": "气象再分析数据"
+    },
+    {
+      "id": "ENV-02",
+      "factor": "着陆场地面条件",
+      "condition": "场区能见度与地面风正常",
+      "source": "场区气象站记录"
+    }
+  ],
+  "fault_tree": {
+    "top_event": "着陆点火后姿态发散，一子级回收失败",
+    "nodes": [
+      {
+        "id": "FT-01",
+        "hypothesis": "栅格舵作动器卡滞导致舵面扭曲、控制力矩不足",
+        "discipline": "结构",
+        "risk": "high",
+        "status": "closed",
+        "configurations": ["CFG-Y1", "CFG-Y2"],
+        "evidence": [
+          {"id": "EV-01", "kind": "supports", "source": "TLM-03", "note": "舵偏角饱和且舵面位置反馈不一致"},
+          {"id": "EV-02", "kind": "supports", "source": "DOC-REC-01", "note": "残骸栅格舵舵面扭曲，作动器内部发现金属屑"},
+          {"id": "EV-03", "kind": "supports", "source": "EXP-01", "note": "地面加载试验复现同类卡滞"}
+        ],
+        "positions": [
+          {"discipline": "结构", "view": "作动器异物卡滞是首因"}
+        ],
+        "conclusion": {"status": "confirmed", "by": "ACT-REV-01"}
+      },
+      {
+        "id": "FT-02",
+        "hypothesis": "主发动机节流阀响应迟缓导致点火初期推力建立不足",
+        "discipline": "动力",
+        "risk": "high",
+        "status": "confirmed",
+        "configurations": ["CFG-Y1", "CFG-Y2"],
+        "evidence": [
+          {"id": "EV-04", "kind": "supports", "source": "TLM-02", "note": "室压上升较地面验收曲线慢0.4s"},
+          {"id": "EV-05", "kind": "supports", "source": "EXP-02", "note": "台架试车复现低温工况下阀响应迟滞"}
+        ],
+        "positions": [
+          {"discipline": "动力", "view": "阀件低温迟滞可解释推力建立不足"}
+        ],
+        "conclusion": {"status": "confirmed", "by": "ACT-REV-02"}
+      },
+      {
+        "id": "FT-03",
+        "hypothesis": "低速大攻角下控制律增益不足放大姿态发散",
+        "discipline": "控制",
+        "risk": "medium",
+        "status": "open",
+        "configurations": ["CFG-Y1", "CFG-Y2"],
+        "evidence": [
+          {"id": "EV-06", "kind": "supports", "source": "TLM-02", "note": "姿态角速率发散形态与增益不足仿真相似"},
+          {"id": "EV-07", "kind": "excludes", "source": "EXP-03", "note": "硬件在环注入FT-01与FT-02故障后无需调增益即可复现发散"}
+        ],
+        "positions": [
+          {"discipline": "控制", "view": "增益裕度不足是独立贡献因素，应修改控制律"},
+          {"discipline": "动力", "view": "发散可由FT-01与FT-02完全解释，无需改控制律"}
+        ],
+        "conclusion": {"status": "unconfirmed"}
+      },
+      {
+        "id": "FT-04",
+        "hypothesis": "高空风切变超包络导致姿态扰动",
+        "discipline": "环境",
+        "risk": "medium",
+        "status": "excluded",
+        "configurations": ["CFG-Y1"],
+        "evidence": [
+          {"id": "EV-08", "kind": "excludes", "source": "ENV-01", "note": "再分析风切变处于设计包络内"},
+          {"id": "EV-09", "kind": "excludes", "source": "TLM-01", "note": "再入段姿态跟踪正常，无异常扰动迹象"}
+        ],
+        "positions": [
+          {"discipline": "环境", "view": "气象条件不构成诱因"}
+        ],
+        "conclusion": {"status": "confirmed", "by": "ACT-REV-01"}
+      },
+      {
+        "id": "FT-05",
+        "hypothesis": "飞控软件回退版本引入舵机滤波缺陷",
+        "discipline": "软件",
+        "risk": "medium",
+        "status": "excluded",
+        "configurations": ["CFG-Y1"],
+        "evidence": [
+          {"id": "EV-10", "kind": "excludes", "source": "DOC-SW-01", "note": "版本比对确认CFG-Y1装载FCW-3.2.1，不含回退缺陷"},
+          {"id": "EV-11", "kind": "excludes", "source": "EXP-04", "note": "软件在环全工况回归未复现滤波异常"}
+        ],
+        "positions": [
+          {"discipline": "软件", "view": "软件版本因素排除"}
+        ],
+        "conclusion": {"status": "confirmed", "by": "ACT-REV-02"}
+      }
+    ]
+  },
+  "experiments": [
+    {
+      "id": "EXP-01",
+      "target_node": "FT-01",
+      "method": "栅格舵作动器地面加载试验",
+      "site": "结构试验室",
+      "result": "reproduced",
+      "note": "注入同批金属屑后复现卡滞与舵面扭曲"
+    },
+    {
+      "id": "EXP-02",
+      "target_node": "FT-02",
+      "method": "发动机节流阀低温台架试车",
+      "site": "试车台",
+      "result": "reproduced",
+      "note": "第二次试车复现阀响应迟滞；第一次因台架传感器故障无效，见FU-02"
+    },
+    {
+      "id": "EXP-03",
+      "target_node": "FT-03",
+      "method": "控制律硬件在环故障注入仿真",
+      "site": "仿真中心",
+      "result": "not_reproduced",
+      "note": "注入FT-01与FT-02故障后发散形态与遥测一致，增益因素影响不显著"
+    },
+    {
+      "id": "EXP-04",
+      "target_node": "FT-05",
+      "method": "飞控软件在环回归测试",
+      "site": "软件实验室",
+      "result": "not_reproduced",
+      "note": "FCW-3.2.1全工况回归未见滤波异常"
+    }
+  ],
+  "measures": [
+    {
+      "id": "MSR-01",
+      "title": "栅格舵作动器双余度改造与舵面加强",
+      "owner": "ACT-OWN-01",
+      "reviewer": "ACT-REV-01",
+      "addresses": ["FT-01"],
+      "verification": "ground_verified",
+      "status": "closed",
+      "parent": null
+    },
+    {
+      "id": "MSR-02",
+      "title": "发动机节流阀控制参数修正",
+      "owner": "ACT-OWN-02",
+      "reviewer": "ACT-REV-02",
+      "addresses": ["FT-02"],
+      "verification": "needs_flight",
+      "status": "in_progress",
+      "parent": null
+    },
+    {
+      "id": "MSR-03",
+      "title": "遥测链路采样率提升与关键通道冗余记录",
+      "owner": "ACT-OWN-04",
+      "reviewer": "ACT-REV-01",
+      "addresses": [],
+      "verification": "ground_verified",
+      "status": "closed",
+      "parent": null
+    },
+    {
+      "id": "MSR-04",
+      "title": "节流阀阀件设计更改（供应商件）",
+      "owner": "ACT-OWN-03",
+      "reviewer": "ACT-REV-02",
+      "addresses": ["FT-02"],
+      "verification": "unverified",
+      "status": "open",
+      "parent": "MSR-02"
+    }
+  ],
+  "follow_ups": [
+    {
+      "id": "FU-01",
+      "kind": "redecode",
+      "ref": "TLM-03",
+      "by": "ACT-INV-TLM",
+      "note": "遥测重新解码恢复信号中断前0.8s，发现舵偏角饱和，支撑FT-01"
+    },
+    {
+      "id": "FU-02",
+      "kind": "test_failure",
+      "ref": "EXP-02",
+      "by": "ACT-INV-PRO",
+      "note": "第一次台架试车因台架传感器故障无效，已安排重复试车并复现"
+    },
+    {
+      "id": "FU-03",
+      "kind": "measure_split",
+      "ref": "MSR-02",
+      "by": "ACT-OWN-02",
+      "produces": ["MSR-04"],
+      "note": "阀件设计更改涉及供应商，拆分为MSR-04单独跟踪"
+    },
+    {
+      "id": "FU-04",
+      "kind": "supplier_feedback",
+      "ref": "MSR-04",
+      "by": "ACT-SUP-01",
+      "note": "供应商确认阀件更改编排与批次追溯计划，交付周期纳入放行条件"
+    }
+  ],
+  "release_gates": [
+    {
+      "configuration": "CFG-Y2",
+      "status": "blocked",
+      "blocked_by": ["FT-02"]
+    }
+  ],
+  "readiness_board": {
+    "meeting": "遥二任务准备会",
+    "unverified_hypotheses": [
+      {"ref": "FT-03", "owner": "ACT-INV-GNC"}
+    ],
+    "ground_verified_measures": [
+      {"ref": "MSR-01", "owner": "ACT-OWN-01"},
+      {"ref": "MSR-03", "owner": "ACT-OWN-04"}
+    ],
+    "needs_flight_verification": [
+      {"ref": "MSR-02", "owner": "ACT-OWN-02"}
+    ]
+  },
+  "flight_reviews": [
+    {
+      "flight": "遥一",
+      "outcome": "入轨成功，一子级回收着陆点火后异常坠毁",
+      "updates": [
+        {"ref": "FT-01", "from": "none", "to": "open"},
+        {"ref": "FT-02", "from": "none", "to": "open"},
+        {"ref": "FT-03", "from": "none", "to": "open"},
+        {"ref": "FT-04", "from": "none", "to": "open"},
+        {"ref": "FT-05", "from": "none", "to": "open"}
+      ]
+    }
   ]
 }
